@@ -1,0 +1,39 @@
+version: "3.8"
+
+services:
+  api-app:
+    build: backend/docker
+    container_name: api-app
+    restart: unless-stopped
+    command: wait-for mariadb:3306 -t 90 -- ./docker/start.sh
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./backend:/home/bitnami/backend
+    depends_on:
+      - mariadb
+    networks:
+      - network-onesight
+
+  mariadb:
+    image: bitnami/mariadb:10.11
+    restart: unless-stopped
+    environment:
+      - MARIADB_DATABASE=mydb
+      - MARIADB_ROOT_USER=root
+      - MARIADB_ROOT_PASSWORD=mypasswordroot
+
+      #Set a user
+      - MARIADB_USER=db_user
+      #Set a password
+      - MARIADB_PASSWORD=mypassword
+    ports:
+      - "3306:3306"
+    volumes:
+      - ./dbData:/var/lib/mysql
+    networks:
+      - network-onesight
+
+networks:
+  network-onesight:
+    driver: bridge
