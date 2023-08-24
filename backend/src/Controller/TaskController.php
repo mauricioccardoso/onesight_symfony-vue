@@ -40,7 +40,7 @@ class TaskController extends AbstractController
 
         return $this->json([
             'tasks' => $task
-        ]);
+        ], 201);
     }
 
     #[Route('/tasks/{id}', name: 'task_update', methods: 'PUT')]
@@ -57,5 +57,13 @@ class TaskController extends AbstractController
         ]);
     }
 
+    #[Route('/tasks/{id}', name: 'task_delete', methods: 'DELETE')]
+    public function delete($id): JsonResponse
+    {
+        $user = $this->securityService->getAuthUser();
 
+        $taskUpdated = $this->taskService->delete($id, $user);
+
+        return $this->json([], 204);
+    }
 }
