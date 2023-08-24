@@ -17,6 +17,18 @@ class TaskController extends AbstractController
         private readonly TaskService $taskService
     ) { }
 
+    #[Route('/tasks', name: 'task_list', methods: 'GET')]
+    public function index(): JsonResponse
+    {
+        $user = $this->securityService->getAuthUser();
+
+        $tasks = $user?->getTasks();
+
+        return $this->json([
+            'tasks' => $tasks
+        ]);
+    }
+
     #[Route('/tasks', name: 'task_create', methods: 'POST')]
     public function create(Request $request): JsonResponse
     {
