@@ -42,4 +42,20 @@ class TaskController extends AbstractController
             'tasks' => $task
         ]);
     }
+
+    #[Route('/tasks/{id}', name: 'task_update', methods: 'PUT')]
+    public function update(Request $request, $id): JsonResponse
+    {
+        $user = $this->securityService->getAuthUser();
+
+        $decodedData = json_decode($request->getContent());
+
+        $taskUpdated = $this->taskService->update($decodedData, $id, $user);
+
+        return $this->json([
+            'tasks' => $taskUpdated
+        ]);
+    }
+
+
 }
