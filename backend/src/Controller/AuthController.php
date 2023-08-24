@@ -14,7 +14,7 @@ class AuthController extends AbstractController
         private readonly UserService $userService
     ) { }
 
-    #[Route('/api/registration', name: 'api_registration', methods: 'POST')]
+    #[Route('/registration', name: 'api_registration', methods: 'POST')]
     public function index(Request $request): JsonResponse
     {
         $decodedData = json_decode($request->getContent());
