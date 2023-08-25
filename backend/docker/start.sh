@@ -2,4 +2,10 @@
 
 composer install
 
-tail -f /dev/null
+~/backend/bin/console lexik:jwt:generate-keypair
+
+~/backend/bin/console doctrine:migrations:migrate
+
+symfony serve
+
+# tail -f /dev/null
