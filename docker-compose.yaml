@@ -16,11 +16,10 @@ services:
       - network-onesight
 
   mariadb:
-    image: bitnami/mariadb:10.11
+    image: mariadb:10.11.5
     restart: unless-stopped
     environment:
       - MARIADB_DATABASE=mydb
-      - MARIADB_ROOT_USER=root
       - MARIADB_ROOT_PASSWORD=mypasswordroot
 
       #Set a user
