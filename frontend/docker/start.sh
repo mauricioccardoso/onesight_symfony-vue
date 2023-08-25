@@ -1,7 +1,7 @@
 #!/bin/bash
 
-#npm install
-#
-#npm run dev
+npm install
 
-tail -f /dev/null
+npm run dev
+
+# tail -f /dev/null

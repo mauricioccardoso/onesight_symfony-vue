@@ -1,6 +1,20 @@
 version: "3.8"
 
 services:
+  front-app:
+    build: ./frontend/docker
+    container_name: front-app
+    command: wait-for api-app:8000 -t 60 -- ./docker/start.sh
+    restart: unless-stopped
+    ports:
+      - "5173:5173"
+    volumes:
+      - ./frontend:/home/node/app
+    depends_on:
+      - api-app
+    networks:
+      - network-onesight
+
   api-app:
     build: backend/docker
     container_name: api-app
