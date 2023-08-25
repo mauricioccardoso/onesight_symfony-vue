@@ -3,6 +3,8 @@
 namespace App\Services;
 
 use App\Entity\Task;
+use App\Services\Errors\ServiceException;
+use App\Services\Errors\ServiceExceptionData;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\EntityManagerInterface;
 use Exception;
@@ -23,12 +25,22 @@ class TaskService
     {
         $user = $this->securityService->getAuthUser();
 
-        $task = new Task();
-        $task->setName($taskData->name);
-        $task->setUser($user);
+        $this->entityManager->beginTransaction();
+        try {
+            $task = new Task();
+            $task->setName($taskData->name);
+            $task->setUser($user);
 
-        $this->entityManager->persist($task);
-        $this->entityManager->flush();
+            $this->entityManager->persist($task);
+            $this->entityManager->flush();
+
+            $this->entityManager->commit();
+        } catch (\Exception $e) {
+            $this->entityManager->rollback();
+
+            $exceptionData = new ServiceExceptionData($e->getCode(), $e->getMessage());
+            throw new ServiceException($exceptionData);
+        }
 
         return $task;
     }
@@ -40,11 +52,22 @@ class TaskService
         $task = $this->findById($taskId);
         $this->verifyUserPermission($user, $task);
 
-        $task->setName($taskData->name);
-        $task->setCompleted($taskData->completed);
+        $this->entityManager->beginTransaction();
+        try {
+            $task->setName($taskData->name);
+            $task->setCompleted($taskData->completed);
 
-        $this->entityManager->persist($task);
-        $this->entityManager->flush();
+            $this->entityManager->persist($task);
+            $this->entityManager->flush();
+
+            $this->entityManager->commit();
+        } catch (\Exception $e) {
+            $this->entityManager->rollback();
+
+            $exceptionData = new ServiceExceptionData($e->getCode(), $e->getMessage());
+            throw new ServiceException($exceptionData);
+        }
+
 
         return $task;
     }
@@ -54,11 +77,20 @@ class TaskService
         $user = $this->securityService->getAuthUser();
 
         $task = $this->findById($taskId);
-
         $this->verifyUserPermission($user, $task);
 
-        $this->entityManager->remove($task);
-        $this->entityManager->flush();
+        $this->entityManager->beginTransaction();
+        try {
+            $this->entityManager->remove($task);
+            $this->entityManager->flush();
+
+            $this->entityManager->commit();
+        } catch (\Exception $e) {
+            $this->entityManager->rollback();
+
+            $exceptionData = new ServiceExceptionData($e->getCode(), $e->getMessage());
+            throw new ServiceException($exceptionData);
+        }
     }
 
     public function findById ($taskId): ?Task
@@ -66,7 +98,8 @@ class TaskService
         $task = $this->entityManager->getRepository(Task::class)->find($taskId);
 
         if (!$task) {
-            throw new \Error('Task not exists');
+            $exceptionData = new ServiceExceptionData(404, 'Task Not Found');
+            throw new ServiceException($exceptionData);
         }
 
         return $task;
@@ -75,7 +108,8 @@ class TaskService
     public function verifyUserPermission ($user, $task): void
     {
         if (!$user->getTasks()->contains($task)) {
-            throw new Exception('Invalid permission');
+            $exceptionData = new ServiceExceptionData(403, 'Access Denied');
+            throw new ServiceException($exceptionData);
         }
     }
 }
