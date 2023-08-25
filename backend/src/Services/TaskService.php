@@ -3,20 +3,29 @@
 namespace App\Services;
 
 use App\Entity\Task;
+use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\EntityManagerInterface;
 use Exception;
 
 class TaskService
 {
-    public function __construct(
+    public function __construct (
         private readonly EntityManagerInterface $entityManager,
-    ) { }
+        private readonly SecurityService        $securityService,
+    ) {}
 
-    public function create($taskData, $user): Task
+    public function list (): Collection
     {
+        return $this->securityService->getAuthUser()->getTasks();
+    }
+
+    public function create ($taskData)
+    {
+        $user = $this->securityService->getAuthUser();
+
         $task = new Task();
-        $task->setUser($user);
         $task->setName($taskData->name);
+        $task->setUser($user);
 
         $this->entityManager->persist($task);
         $this->entityManager->flush();
@@ -24,9 +33,12 @@ class TaskService
         return $task;
     }
 
-    public function update($taskData, $taskId, $user): Task
+    public function update ($taskData, $taskId): Task
     {
-        $task = $this->verifyIfExistsAndPermission($taskId, $user);
+        $user = $this->securityService->getAuthUser();
+
+        $task = $this->findById($taskId);
+        $this->verifyUserPermission($user, $task);
 
         $task->setName($taskData->name);
         $task->setCompleted($taskData->completed);
@@ -37,30 +49,33 @@ class TaskService
         return $task;
     }
 
-    public function delete($taskId, $user): void
+    public function delete ($taskId): void
     {
-        $task = $this->verifyIfExistsAndPermission($taskId, $user);
+        $user = $this->securityService->getAuthUser();
+
+        $task = $this->findById($taskId);
+
+        $this->verifyUserPermission($user, $task);
 
         $this->entityManager->remove($task);
         $this->entityManager->flush();
     }
 
-    public function findById($taskId): ?Task
+    public function findById ($taskId): ?Task
     {
-        return $this->entityManager->getRepository(Task::class)->find($taskId);
-    }
-
-    public function verifyIfExistsAndPermission($taskId, $user): Task
-    {
-        $task = $this->findById($taskId);
+        $task = $this->entityManager->getRepository(Task::class)->find($taskId);
 
         if (!$task) {
-            throw new Exception('Task not exists');
+            throw new \Error('Task not exists');
         }
 
-        if ($task->getId() !== $user->getId()) {
+        return $task;
+    }
+
+    public function verifyUserPermission ($user, $task): void
+    {
+        if (!$user->getTasks()->contains($task)) {
             throw new Exception('Invalid permission');
         }
-        return $task;
     }
 }

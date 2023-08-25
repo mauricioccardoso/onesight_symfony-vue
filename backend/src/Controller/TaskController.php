@@ -12,17 +12,15 @@ use Symfony\Component\Routing\Annotation\Route;
 
 class TaskController extends AbstractController
 {
-    public function __construct(
-        private readonly SecurityService $securityService,
-        private readonly TaskService $taskService
-    ) { }
+    public function __construct (
+        private readonly TaskService     $taskService,
+        private readonly SecurityService $securityService
+    ) {}
 
     #[Route('/tasks', name: 'task_list', methods: 'GET')]
-    public function index(): JsonResponse
+    public function index (): JsonResponse
     {
-        $user = $this->securityService->getAuthUser();
-
-        $tasks = $user?->getTasks();
+        $tasks = $this->taskService->list();
 
         return $this->json([
             'tasks' => $tasks
@@ -30,13 +28,11 @@ class TaskController extends AbstractController
     }
 
     #[Route('/tasks', name: 'task_create', methods: 'POST')]
-    public function create(Request $request): JsonResponse
+    public function create (Request $request)
     {
-        $user = $this->securityService->getAuthUser();
+        $requestData = json_decode($request->getContent());
 
-        $decodedData = json_decode($request->getContent());
-
-        $task = $this->taskService->create($decodedData, $user);
+        $task = $this->taskService->create($requestData);
 
         return $this->json([
             'tasks' => $task
@@ -44,13 +40,11 @@ class TaskController extends AbstractController
     }
 
     #[Route('/tasks/{id}', name: 'task_update', methods: 'PUT')]
-    public function update(Request $request, $id): JsonResponse
+    public function update (Request $request, int $id): JsonResponse
     {
-        $user = $this->securityService->getAuthUser();
+        $requestData = json_decode($request->getContent());
 
-        $decodedData = json_decode($request->getContent());
-
-        $taskUpdated = $this->taskService->update($decodedData, $id, $user);
+        $taskUpdated = $this->taskService->update($requestData, $id);
 
         return $this->json([
             'tasks' => $taskUpdated
@@ -58,11 +52,9 @@ class TaskController extends AbstractController
     }
 
     #[Route('/tasks/{id}', name: 'task_delete', methods: 'DELETE')]
-    public function delete($id): JsonResponse
+    public function delete (int $id): JsonResponse
     {
-        $user = $this->securityService->getAuthUser();
-
-        $taskUpdated = $this->taskService->delete($id, $user);
+        $this->taskService->delete($id);
 
         return $this->json([], 204);
     }
