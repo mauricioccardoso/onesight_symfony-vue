@@ -9,16 +9,18 @@
         {{ buttonLabel }}
       </button>
     </div>
+
   </form>
 </template>
 
 <script setup lang="ts">
 const props = defineProps<{
   buttonLabel: string;
+  cbFunction: (data) => void
   submitPath: string
 }>();
 
 const submitForm = () => {
-  console.log(props.submitPath);
+  props.cbFunction(props.submitPath);
 }
 </script>

@@ -9,7 +9,8 @@
 
       <!--Form-->
       <BasicForm
-          :submitPath="isSignIn ? 'Sign in' : 'Create Account'"
+          :cbFunction="signInSignUpFormDataStore.submitData"
+          :submitPath=" isSignIn ? '/login' : '/registration'"
           :buttonLabel="isSignIn ? 'Sign in' : 'Create Account'
       ">
 
@@ -32,10 +33,14 @@
 </template>
 
 <script setup lang="ts">
-import { useRoute } from "vue-router";
-import { computed } from "vue";
 import BasicForm from "@/components/BasicForm.vue";
 
+import { useRoute } from "vue-router";
+import { computed } from "vue";
+
+import { useSignInSignUpFormDataStore } from "@/stores/SignInSignUpFormDataStore";
+
+const signInSignUpFormDataStore = useSignInSignUpFormDataStore();
 const route = useRoute();
 
 const isSignIn = computed(() => route.path === '/sign-in');
