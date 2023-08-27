@@ -19,7 +19,8 @@ class ServiceExceptionData
     public function toArray(): array
     {
         return [
-            'type' => $this->type
+            'code' => $this->statusCode,
+            'message' => $this->type
         ];
     }
 }
