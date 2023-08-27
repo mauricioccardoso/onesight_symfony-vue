@@ -1,11 +1,16 @@
-<script setup lang="ts">
-import { RouterView } from 'vue-router'
-</script>
-
 <template>
   <div class="app-content">
-  <RouterView />
+    <RouterView/>
+
+    <NotificationCard v-show="notificationStore.notification?.message"/>
   </div>
 </template>
 
-<style scoped></style>
+<script setup lang="ts">
+import { RouterView } from 'vue-router'
+import NotificationCard from "@/components/NotificationCard.vue";
+
+import { useNotificationStore } from "@/stores/NotificationStore";
+
+const notificationStore = useNotificationStore();
+</script>

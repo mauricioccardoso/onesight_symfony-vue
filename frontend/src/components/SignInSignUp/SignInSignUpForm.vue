@@ -11,8 +11,9 @@
       <BasicForm
           :cbFunction="signInSignUpFormDataStore.submitData"
           :submitPath=" isSignIn ? '/login' : '/registration'"
-          :buttonLabel="isSignIn ? 'Sign in' : 'Create Account'
-      ">
+          :buttonLabel="isSignIn ? 'Sign in' : 'Create Account'"
+          :isLoading="signInSignUpFormDataStore.onMakeRequest"
+      >
 
         <slot></slot>
 

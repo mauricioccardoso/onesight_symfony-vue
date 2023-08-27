@@ -8,46 +8,57 @@ import httpClient from "@/http";
 
 import { useAuthDataStore } from "@/stores/AuthDataStore";
 import { type Router, useRouter } from "vue-router";
+import { useNotificationStore } from "@/stores/NotificationStore";
 
 export const useSignInSignUpFormDataStore = defineStore('signInSignUpFormDataStore', () => {
     const router : Router = useRouter();
     const authDataStore = useAuthDataStore();
+    const notificationStore = useNotificationStore();
 
     const signInSignUpFormData : Ref<signInSignUpDataInterface> = ref({});
+    const onMakeRequest : Ref<boolean> = ref(false);
 
     const clearData = () : void => {
         signInSignUpFormData.value.email = "";
+        clearPassword();
+    }
+
+    const clearPassword = () : void => {
         signInSignUpFormData.value.password = "";
         delete signInSignUpFormData.value.passwordConfirmation;
     }
 
     const submitData = async (path) : Promise<void> => {
         if(path === '/registration' && signInSignUpFormData.value.password !== signInSignUpFormData.value.passwordConfirmation) {
-            console.log('Show Password Error Notification')
+            notificationStore.showNotification('Passwords do not match!', 'error');
+            clearPassword();
             return;
         }
 
         const resp = await makeRequest(path, signInSignUpFormData.value);
 
         if(resp?.code) {
-            console.log('Show Error Notification', resp);
+            notificationStore.showNotification(resp.message, 'error');
+            clearPassword();
             return;
         }
 
         if(path === '/login') {
             authDataStore.setToken(resp.token);
-            await router.push({ name: 'home' })
+            await router.push({ name: 'home' });
             return;
         }
 
         if(path === '/registration') {
-            console.log('Show Registration Success Notification', resp);
+            notificationStore.showNotification(resp.message, 'success');
             await router.push({ name: 'sign-in' });
             return;
         }
     }
 
     const makeRequest = async (path, data) => {
+        onMakeRequest.value = true;
+
         httpClient.interceptors.request.clear();
 
         return await httpClient.post(`${ path }`, data)
@@ -56,11 +67,15 @@ export const useSignInSignUpFormDataStore = defineStore('signInSignUpFormDataSto
             })
             .catch((error : AxiosError) => {
                 if(error.response?.data) {
-                    return error.response.data
+                    return error.response.data;
                 }
                 return error
-            });
+            })
+            .finally(() : void => {
+                    onMakeRequest.value = false;
+                }
+            );
     }
 
-    return { signInSignUpFormData, submitData, clearData }
+    return { signInSignUpFormData, onMakeRequest, submitData, clearData }
 })
