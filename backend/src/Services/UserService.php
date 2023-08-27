@@ -18,17 +18,17 @@ class UserService
     public function createUser ($userData): void
     {
         $email = $userData->email;
-        $plainTextPassword = $userData->password;
-
         $userExists = $this->findByEmail($email);
 
         if ($userExists) {
-            $exceptionData = new ServiceExceptionData(403, 'Access Denied');
+            $exceptionData = new ServiceExceptionData(401, 'E-mail already registered');
             throw new ServiceException($exceptionData);
         }
 
+        $this->passwordValidation($userData);
+
         $user = new User();
-        $hashedPassword = $this->passwordHasher->hashPassword($user, $plainTextPassword);
+        $hashedPassword = $this->passwordHasher->hashPassword($user, $userData->password);
 
         $this->entityManager->beginTransaction();
         try {
@@ -47,8 +47,16 @@ class UserService
         }
     }
 
-    public function findByEmail ($email)
+    public function findByEmail ($email): User | null
     {
         return $this->entityManager->getRepository(User::class)->findOneBy(['email' => $email]);
+    }
+
+    private function passwordValidation($userData): void
+    {
+        if($userData->password !== $userData->passwordConfirmation) {
+            $exceptionData = new ServiceExceptionData(400, 'Passwords do not match');
+            throw new ServiceException($exceptionData);
+        }
     }
 }

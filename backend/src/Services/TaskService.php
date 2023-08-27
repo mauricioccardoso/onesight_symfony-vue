@@ -108,7 +108,7 @@ class TaskService
     public function verifyUserPermission ($user, $task): void
     {
         if (!$user->getTasks()->contains($task)) {
-            $exceptionData = new ServiceExceptionData(403, 'Access Denied');
+            $exceptionData = new ServiceExceptionData(401, 'Access Denied');
             throw new ServiceException($exceptionData);
         }
     }
