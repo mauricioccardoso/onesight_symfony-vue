@@ -22,42 +22,44 @@ export const useSignInSignUpFormDataStore = defineStore('signInSignUpFormDataSto
     }
 
     const submitData = async (path) : Promise<void> => {
-        if (path === '/registration' && signInSignUpFormData.value.password !== signInSignUpFormData.value.passwordConfirmation) {
+        if(path === '/registration' && signInSignUpFormData.value.password !== signInSignUpFormData.value.passwordConfirmation) {
             console.log('Show Password Error Notification')
             return;
         }
 
         const resp = await makeRequest(path, signInSignUpFormData.value);
 
-        if (resp?.code) {
-            console.log('Show Error Notification', resp)
+        if(resp?.code) {
+            console.log('Show Error Notification', resp);
             return;
         }
 
-        if (path === '/login') {
+        if(path === '/login') {
             authDataStore.setToken(resp.token);
             await router.push({ name: 'home' })
             return;
         }
 
-        if (path === '/registration') {
-            console.log('Show Registration Success Notification', resp)
-            await router.push({ name: 'sign-in' })
+        if(path === '/registration') {
+            console.log('Show Registration Success Notification', resp);
+            await router.push({ name: 'sign-in' });
             return;
         }
     }
 
     const makeRequest = async (path, data) => {
+        httpClient.interceptors.request.clear();
+
         return await httpClient.post(`${ path }`, data)
             .then(({ data } : AxiosResponse) => {
                 return data;
             })
             .catch((error : AxiosError) => {
-                if (error.response?.data) {
+                if(error.response?.data) {
                     return error.response.data
                 }
                 return error
-            })
+            });
     }
 
     return { signInSignUpFormData, submitData, clearData }
